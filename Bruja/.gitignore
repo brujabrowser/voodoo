@@ -13,3 +13,5 @@ tools/occupy.ps1
 *_gen.cpp
 *_gen.h
 .cache/
+__pycache__/
+*.pyc
