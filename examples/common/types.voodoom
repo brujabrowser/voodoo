@@ -1,0 +1,18 @@
+// A shared, importable library file -- has no interface of its own, just
+// types other .voodoom files pull in via `import`. Its `module` statement
+// is always meaningful now (v15): whether compiled directly as an entry
+// file or only ever imported, this file gets its own generated header
+// (types_gen.h when imported -- see CMakeLists.txt) in this exact `common`
+// namespace -- see src/module_loader.h.
+module common;
+
+enum Severity {
+  INFO,
+  WARNING,
+  ERROR,
+};
+
+struct LogEntry {
+  string message;
+  Severity severity;
+};

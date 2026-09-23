@@ -1,0 +1,24 @@
+// Exercises real-mojom-parity phase 6's `result<T, E>` response type --
+// real mojom's alternative to `=> (param_list)`: exactly one response
+// value, which is either a T (success) or an E (failure). This compiler
+// desugars it to a synthesized two-arm union (see README's "`result<T,
+// E>` responses" and "Known simplifications") -- Inventory.Get exercises
+// a struct success type and a struct error type (Item/NotFoundError),
+// and the [Sync] Divide exercises result<T, E> alongside a blocking
+// call, proving the two features compose. See
+// tests/golden/result_type_roundtrip.cc for the real round-trip proof.
+module result_type;
+
+struct Item {
+  string name;
+  int32 quantity;
+};
+
+struct NotFoundError {
+  string message;
+};
+
+interface Inventory {
+  Get(string key) => result<Item, NotFoundError>;
+  [Sync] Divide(int32 a, int32 b) => result<int32, string>;
+};

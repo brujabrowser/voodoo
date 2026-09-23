@@ -1,0 +1,15 @@
+# Chromium-src sparse checkout (mojom blobs only)
+third_party/chromium-src/
+build/
+occupancy/
+out/mojojs-chrome*/
+out/voodoo/
+out/voodoo-wasm/
+out/chrome-load.*
+out/scan_handlers.py
+tools/occupy.ps1
+*.exe
+*.wasm
+*_gen.cpp
+*_gen.h
+.cache/

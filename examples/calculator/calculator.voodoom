@@ -1,0 +1,17 @@
+// Exercises the v7 surface none of the earlier examples do: the `[Sync]`
+// method attribute. Add() and Divide() both block until their response
+// arrives instead of taking a callback -- see
+// tests/golden/calculator_roundtrip.cc, which calls the generated
+// blocking Proxy_ overload with *no* manual Pump() first and checks the
+// answer is already there when the call returns, proving it's a real
+// blocking call (built on WASMCadidumBindings' Connector::SyncWaitFor),
+// not something that happens to work because the test pumped anyway.
+// Echo() stays a normal async method, proving [Sync] and non-[Sync]
+// methods coexist on one interface with no interference.
+module calculator;
+
+interface Calculator {
+  [Sync] Add(int32 a, int32 b) => (int32 sum);
+  [Sync] Divide(int32 a, int32 b) => (bool ok, int32 quotient);
+  Echo(string value) => (string value);
+};

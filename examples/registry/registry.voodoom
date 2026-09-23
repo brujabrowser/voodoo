@@ -1,0 +1,28 @@
+// Exercises the v2 surface echo.voodoom doesn't: enum, struct (as a
+// by-value param and inside an array response), array<T> of both a
+// scalar/string type and a struct type, and a non-associated
+// pending_remote<T> parameter (a real, OS-transmissible handle handoff --
+// see tests/golden/registry_roundtrip.cc, which hands the Watch() remote
+// a fresh pipe and proves the far side can actually push through it).
+module registry;
+
+enum Status {
+  OK,
+  ERROR,
+};
+
+struct Entry {
+  string key;
+  int32 value;
+  Status status;
+};
+
+interface Watcher {
+  OnChanged(array<string> keys);
+};
+
+interface Store {
+  Put(Entry entry) => (bool ok);
+  List() => (array<Entry> entries);
+  Watch(pending_remote<Watcher> watcher);
+};

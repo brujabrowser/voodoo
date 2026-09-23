@@ -1,0 +1,4 @@
+interface Console {
+  void log(DOMString message);
+  void warn(DOMString message);
+};

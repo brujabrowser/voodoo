@@ -1,0 +1,42 @@
+// The real Mojo-shaped control channel between Cadmium
+// (loki-closure/cmd/cadmium) and WASMHolePunch's whp_cadmium bridge --
+// what bridge_ipc.go's /api/rbi/ipc HTTP hook is a polling stand-in for
+// today. whp_cadmium holds the Remote<VoodooBridge> handed over the
+// punched pipe at connection time; Cadmium implements VoodooBridge.
+// Attach() hands Cadmium a pending_associated_remote<VoodooOrdinalListener>
+// so outbound ordinals can be pushed to whp_cadmium directly the moment
+// they're queued, instead of waiting for the next poll -- the same
+// associated-listener idiom echo.voodoom's EchoListener uses. Every
+// interface below also gets QueryVersion/RequireVersion for free (see
+// tests/golden/interface_control_messages_roundtrip.cc): the real
+// control channel both sides can already rely on without a single
+// .voodoom-level attribute.
+module cadmium.voodoo;
+
+// What whp_cadmium reports after firing/receiving on the punched pipe --
+// kind is "mojo_pipe" / "mojo_recv" / "mojo_send" upstream, carried as a
+// plain string the same way bridge_ipc.go's ipcEvent does.
+struct BridgeEvent {
+  string kind;
+  string via;
+  uint32 ordinal;
+  string name;
+  string sid;
+  string note;
+};
+
+// Pushed by Cadmium to whp_cadmium over the associated channel Attach()
+// establishes: fire this Mojo ordinal over the punched pipe now.
+interface VoodooOrdinalListener {
+  OnFire(uint32 ordinal, string name);
+};
+
+interface VoodooBridge {
+  // whp_cadmium calls this once, right after the punch, handing over its
+  // listener endpoint; Cadmium replies with the session id it assigned
+  // this connection (bridge_ipc.go's "sid").
+  Attach(pending_associated_remote<VoodooOrdinalListener> listener) => (string sid);
+
+  // whp_cadmium reports what it actually did with the punched pipe.
+  Report(BridgeEvent event) => (bool ok);
+};

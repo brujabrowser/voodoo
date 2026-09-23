@@ -1,0 +1,40 @@
+// Exercises the v6/v7 field-default surface none of the earlier examples
+// does, alongside a dotted `module a.b;` name (nested C++ namespaces --
+// generated code lives in `wasmvoodoo::telemetry`, not one flat
+// namespace). Sample's four fields cover every kind of default this
+// compiler supports: a bare string literal (`label`), a reference to a
+// previously-declared const (`count = kDefaultCount`), a bare bool
+// literal (`verified`), and a reference to one of Sample's own enum
+// field's declared values (`level = MEDIUM`) -- note `Level` is declared
+// *after* `Sample` here, proving enum-value defaults resolve regardless
+// of file order, unlike the const reference (which does need `const int32
+// kDefaultCount` declared first -- see README's "Dotted namespaces and
+// field defaults").
+//
+// See tests/golden/telemetry_roundtrip.cc, which checks a
+// freshly-constructed (never-sent-over-the-wire) Sample already has these
+// defaults -- proving they're a real C++ member-initializer effect, not
+// something only visible after a roundtrip -- and then proves a real
+// Record()/GetLast() roundtrip still works inside the nested namespace,
+// the same way settings_roundtrip.cc proves the v3 surface.
+module wasmvoodoo.telemetry;
+
+const int32 kDefaultCount = 7;
+
+struct Sample {
+  string label = "unlabeled";
+  int32 count = kDefaultCount;
+  bool verified = false;
+  Level level = MEDIUM;
+};
+
+enum Level {
+  LOW,
+  MEDIUM,
+  HIGH,
+};
+
+interface TelemetrySink {
+  Record(Sample s) => (bool ok);
+  GetLast() => (Sample s);
+};

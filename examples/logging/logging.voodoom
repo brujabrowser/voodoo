@@ -1,0 +1,17 @@
+// Exercises the v4 surface neither echo/registry/settings does: `import`.
+// LogEntry and Severity come entirely from ../common/types.voodoom, and
+// GetSeverityCounts's response uses Severity as a map key (enum-keyed maps
+// are allowed; see README's map-key rule). Resolved with zero extra flags
+// -- "../common/types.voodoom" is relative to this file's own directory,
+// which voodoomc always tries first (see src/module_loader.h). See
+// tests/golden/logging_roundtrip.cc for the real Log()/GetSeverityCounts()
+// roundtrip proof, the same way settings_roundtrip.cc proves the v3
+// surface.
+module logging;
+
+import "../common/types.voodoom";
+
+interface Logger {
+  Log(LogEntry entry) => (bool ok);
+  GetSeverityCounts() => (map<Severity, int32> counts);
+};

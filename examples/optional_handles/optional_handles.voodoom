@@ -1,0 +1,23 @@
+// Exercises the v14 surface no other example does: nullable pending_*
+// method parameters (`pending_remote<T>?` and
+// `pending_associated_remote<T>?`) -- a caller may either hand over a
+// real, live handle/endpoint or explicitly pass none at all (e.g.
+// "start watching" vs. "stop watching, no replacement"). See
+// tests/golden/optional_handles_roundtrip.cc, which proves both the
+// present and absent cases actually transit the wire correctly for both
+// the non-associated (real OS pipe) and associated (in-process endpoint
+// id) handle kinds.
+module optional_handles;
+
+interface Watcher {
+  OnChanged(string value);
+};
+
+interface Listener {
+  OnPing();
+};
+
+interface Hub {
+  Watch(pending_remote<Watcher>? watcher);
+  SetListener(pending_associated_remote<Listener>? listener);
+};

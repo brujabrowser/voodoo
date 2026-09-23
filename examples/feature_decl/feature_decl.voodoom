@@ -1,0 +1,29 @@
+// Exercises real-mojom-parity phase 7's `feature NAME { ... };`
+// top-level declarations -- real mojom ties these to Chromium's
+// base::Feature runtime flag system (attributes like `[Status=STABLE,
+// EnabledStateByDefault=ENABLED_BY_DEFAULT]`, which this compiler
+// accepts and silently ignores), which has no equivalent outside an
+// actual Chromium build. This compiler generates only the feature's own
+// nested consts (mangled namespace-scope, same treatment an interface's
+// or struct's own nested consts already get) -- RetryPolicy.kMaxRetries
+// is referenced both as a struct field default (Job.retries) and passed
+// explicitly as a method parameter, proving the mangled const is a real,
+// usable C++ value at runtime, not just a parse-time artifact. See
+// tests/golden/feature_decl_roundtrip.cc.
+module feature_decl;
+
+[Status=STABLE, EnabledStateByDefault=ENABLED_BY_DEFAULT]
+feature RetryPolicy {
+  const int32 kMaxRetries = 3;
+  const bool kEnabled = true;
+};
+
+struct Job {
+  string name;
+  int32 retries = RetryPolicy.kMaxRetries;
+};
+
+interface JobQueue {
+  Submit(Job job);
+  SubmitWithRetries(string name, int32 retries) => (bool accepted);
+};

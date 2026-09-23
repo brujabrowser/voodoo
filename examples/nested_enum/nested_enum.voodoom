@@ -1,0 +1,38 @@
+// Exercises v16's nested enum -- an `enum` declared inside an `interface`
+// or `struct` body, referenced either by bare name (from anywhere in the
+// file -- see parser.cc's ContainerOf for why this compiler doesn't
+// restrict that to the declaring container only) or the qualified
+// `Container.EnumName` form. Deliberately exercises *both* cross-container
+// directions in one file: Job (a struct) references Worker.Status (an
+// interface's nested enum), and JobQueue (an interface) references
+// Job.Priority (a struct's nested enum) -- proving the generator's
+// nested-enum codegen doesn't depend on which of struct/interface happens
+// to be emitted first (see cpp_generator.cc's MangledNestedEnumName for
+// why that matters here). Also exercises an enum-typed map key on a
+// nested enum, same as logging.voodoom already does for a top-level one.
+module nested_enum;
+
+interface Worker {
+  enum Status { IDLE, RUNNING, DONE };
+
+  struct Snapshot {
+    Status status;
+    int32 jobs;
+  };
+
+  SetStatus(Status s);
+  GetStatusCounts() => (map<Status, int32> counts);
+  GetSnapshot() => (Snapshot s);
+};
+
+struct Job {
+  enum Priority { LOW, NORMAL, HIGH };
+
+  Priority priority;
+  Worker.Status status;
+};
+
+interface JobQueue {
+  Enqueue(Job job) => (bool ok);
+  SetPriority(Job.Priority p);
+};

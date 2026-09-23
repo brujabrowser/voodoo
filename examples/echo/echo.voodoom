@@ -1,0 +1,15 @@
+// The exact interface documented at the top of
+// WASMCadidumBindings/examples/echo/echo_interface.h -- feeding this file
+// to voodoomc should produce a header structurally identical to that
+// hand-written one. See tests/golden for the proof (it builds both and
+// runs the same roundtrip against real WASMCadidumBindings machinery).
+module echo;
+
+interface EchoListener {
+  OnEcho(string value);
+};
+
+interface Echo {
+  EchoString(string in) => (string out);
+  SetListener(pending_associated_remote<EchoListener> listener);
+};

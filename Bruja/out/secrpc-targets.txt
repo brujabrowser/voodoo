@@ -1,0 +1,66 @@
+﻿[ {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/inspector.html?ws=127.0.0.1:9334/devtools/page/4F4E842A9A46C9889B99527B23816D35",
+   "id": "4F4E842A9A46C9889B99527B23816D35",
+   "title": "Chrome Web Store Payments",
+   "type": "background_page",
+   "url": "chrome-extension://nmmhkkegccagdldgiimedpiccmgmieda/_generated_background_page.html",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/4F4E842A9A46C9889B99527B23816D35"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/inspector.html?ws=127.0.0.1:9334/devtools/page/A941254B3D6B8CFCF42A634B6F4C37F5",
+   "id": "A941254B3D6B8CFCF42A634B6F4C37F5",
+   "title": "Google Hangouts",
+   "type": "background_page",
+   "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/background.html",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/A941254B3D6B8CFCF42A634B6F4C37F5"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/inspector.html?ws=127.0.0.1:9334/devtools/page/50E153497649CB18C0B0D84596C7DA2E",
+   "id": "50E153497649CB18C0B0D84596C7DA2E",
+   "title": "about:blank",
+   "type": "page",
+   "url": "about:blank",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/50E153497649CB18C0B0D84596C7DA2E"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/inspector.html?ws=127.0.0.1:9334/devtools/page/69CD172BF36F3FE6E6689BC0D20CEFCC",
+   "id": "69CD172BF36F3FE6E6689BC0D20CEFCC",
+   "title": "Omnibox Popup",
+   "type": "browser_ui",
+   "url": "chrome://omnibox-popup.top-chrome/",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/69CD172BF36F3FE6E6689BC0D20CEFCC"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/inspector.html?ws=127.0.0.1:9334/devtools/page/D5B133F7902CF37E3A4AACA2866D808D",
+   "id": "D5B133F7902CF37E3A4AACA2866D808D",
+   "title": "Omnibox Popup",
+   "type": "browser_ui",
+   "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/D5B133F7902CF37E3A4AACA2866D808D"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/worker_app.html?ws=127.0.0.1:9334/devtools/page/382804B3DE1A02E8F380414EA48EC157",
+   "id": "382804B3DE1A02E8F380414EA48EC157",
+   "title": "Service Worker chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+   "type": "service_worker",
+   "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/382804B3DE1A02E8F380414EA48EC157"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/worker_app.html?ws=127.0.0.1:9334/devtools/page/B00D93499AABAEE902DCAB3FF00B821E",
+   "id": "B00D93499AABAEE902DCAB3FF00B821E",
+   "title": "Service Worker chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+   "type": "service_worker",
+   "url": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/B00D93499AABAEE902DCAB3FF00B821E"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@792bf6722e73a45aa9e47c163b9901bdc17f3230/worker_app.html?ws=127.0.0.1:9334/devtools/page/D120478812F1EB664CBD3E46A8D9ACA0",
+   "id": "D120478812F1EB664CBD3E46A8D9ACA0",
+   "title": "Service Worker chrome-extension://ghbmnnjooekpmoecnnnilnnbdlolhkhi/service_worker_bin_prod.js",
+   "type": "service_worker",
+   "url": "chrome-extension://ghbmnnjooekpmoecnnnilnnbdlolhkhi/service_worker_bin_prod.js",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9334/devtools/page/D120478812F1EB664CBD3E46A8D9ACA0"
+} ]
+

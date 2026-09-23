@@ -1,0 +1,15 @@
+// The "old, but forward-compatible" enum schema -- identical to
+// color_v1_closed.voodoom's Color, plus `[Extensible]`. See that file and
+// tests/golden/enum_versioning_roundtrip.cc.
+module color_v1_extensible;
+
+[Extensible]
+enum Color {
+  kRed,
+  kGreen,
+};
+
+interface Painter {
+  SetColor(Color c);
+  Ping() => (bool ok);
+};

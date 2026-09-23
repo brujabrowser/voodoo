@@ -1,0 +1,20 @@
+// The "old, and NOT forward-compatible" enum schema in an enum
+// extensibility proof -- see color_v1_extensible.voodoom (same two
+// values, its enum marked [Extensible]) and color_v2.voodoom (adds a
+// third value neither v1 schema has). See
+// tests/golden/enum_versioning_roundtrip.cc, which writes a
+// color_v2::Painter's SetColor(kBlue) -- a value neither v1 schema has
+// ever heard of -- and has both v1 schemas' Painter Stub_s try to read
+// it, proving [Extensible] is what actually makes the difference between
+// a clean read failure and a tolerated unknown value.
+module color_v1_closed;
+
+enum Color {
+  kRed,
+  kGreen,
+};
+
+interface Painter {
+  SetColor(Color c);
+  Ping() => (bool ok);
+};

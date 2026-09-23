@@ -1,0 +1,36 @@
+// Exercises real-mojom-parity phase 2 -- nested `const` (interface +
+// struct) and the widened const/default value grammar (float/double/bool/
+// string, not just integer, plus hex literals). kDefaultTimeout (Config's
+// own nested const) references Worker.kMaxJobs (a *different* container's
+// nested const) via the qualified form -- the same cross-container
+// ordering case examples/nested_enum/nested_enum.voodoom already proves
+// for enums, now for const.
+module const_parity;
+
+const int32 kMaxRetries = 5;
+const int32 kMask = 0xFF;
+const float kThreshold = 3.5;
+const double kPi = 3.14159265358979;
+const bool kDebugDefault = true;
+const string kGreeting = "hello";
+
+interface Worker {
+  const int32 kMaxJobs = 10;
+  enum Status { IDLE, RUNNING };
+  GetMaxJobs() => (int32 jobs);
+};
+
+struct Config {
+  const int32 kDefaultTimeout = Worker.kMaxJobs;
+  int32 timeout = kDefaultTimeout;
+  int32 retries = kMaxRetries;
+  int32 mask = kMask;
+  float threshold = kThreshold;
+  double pi = kPi;
+  bool debug = kDebugDefault;
+  string greeting = kGreeting;
+};
+
+interface ConfigStore {
+  GetConfig() => (Config config);
+};

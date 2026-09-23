@@ -1,0 +1,27 @@
+// Exercises the v5 surface none of the earlier examples do: nullable
+// ('?') types. `Address.zip`, `Profile.nickname`, `Profile.address`,
+// `Profile.tags`, and `Profile.scores` are all nullable -- a nullable
+// scalar/nested-struct field alongside a nullable top-level string, array,
+// and map, in the same pair of structs. See
+// tests/golden/profile_roundtrip.cc, which proves BOTH states (present and
+// absent) survive a real Put()/Get() roundtrip for every nullable field,
+// the same way settings_roundtrip.cc proves the v3 surface.
+module profile;
+
+struct Address {
+  string city;
+  string? zip;
+};
+
+struct Profile {
+  string name;
+  string? nickname;
+  Address? address;
+  array<string>? tags;
+  map<string, int32>? scores;
+};
+
+interface ProfileStore {
+  Put(Profile p) => (bool ok);
+  Get() => (Profile p);
+};

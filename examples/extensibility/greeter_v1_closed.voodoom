@@ -1,0 +1,13 @@
+// The contrasting "old, and NOT forward-compatible" server schema --
+// identical to greeter_v1_extensible.voodoom's Greeter, minus
+// `[Extensible]`. tests/golden/extensibility_roundtrip.cc uses this one
+// to prove [Extensible] is actually doing something: the exact same
+// "client calls a method this server doesn't know about" scenario that
+// survives against greeter_v1_extensible::Greeter kills the connection
+// here, matching this compiler's -- and real mojom's -- default
+// (non-extensible) behavior for an unrecognized message ordinal.
+module greeter_v1_closed;
+
+interface Greeter {
+  Greet(string name) => (string reply);
+};

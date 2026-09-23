@@ -1,0 +1,10 @@
+// The "old, but forward-compatible" union schema -- identical to
+// status_v1_closed.voodoom's Status, plus `[Extensible]`. See that file
+// and tests/golden/union_versioning_roundtrip.cc.
+module status_v1_extensible;
+
+[Extensible]
+union Status {
+  int32 code;
+  string message;
+};

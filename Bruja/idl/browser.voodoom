@@ -1,0 +1,6 @@
+module bruja;
+
+interface Browser {
+  UserAgent() => (string ua);
+  Open(string url) => (bool ok, string title, string error);
+};

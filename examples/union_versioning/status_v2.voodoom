@@ -1,0 +1,12 @@
+// The "new" union schema -- adds a `[MinVersion=1] retry` variant on top
+// of status_v1_closed.voodoom/status_v1_extensible.voodoom's `code`/
+// `message`. See tests/golden/union_versioning_roundtrip.cc, which
+// writes a status_v2::Status set to `retry` (a variant neither v1 schema
+// has ever heard of) and reads it back through both.
+module status_v2;
+
+union Status {
+  int32 code;
+  string message;
+  [MinVersion=1] bool retry;
+};

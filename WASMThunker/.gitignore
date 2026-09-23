@@ -1,0 +1,13 @@
+/build/
+/build-*/
+/out/
+/.cache/
+CMakeUserPresets.json
+*.obj
+*.o
+*.exe
+*.pdb
+*.ilk
+*.wasm
+.DS_Store
+Thumbs.db

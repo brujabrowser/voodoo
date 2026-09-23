@@ -1,0 +1,12 @@
+// The "new" client schema in an interface extensibility proof -- adds
+// Farewell(), `[MinVersion=1]`, on top of greeter_v1_extensible.voodoom/
+// greeter_v1_closed.voodoom's single Greet() method. See
+// tests/golden/extensibility_roundtrip.cc, which builds a
+// greeter_v2::Greeter Remote (the "upgraded client") and connects it to
+// each of the two older server schemas in turn.
+module greeter_v2;
+
+interface Greeter {
+  Greet(string name) => (string reply);
+  [MinVersion=1] Farewell(string name) => (string reply);
+};

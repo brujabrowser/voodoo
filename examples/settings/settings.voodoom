@@ -1,0 +1,25 @@
+// Exercises the v3 surface neither echo.voodoom nor registry.voodoom does:
+// a union (Outcome, with an int32 arm and a string arm) and a map<K, V>
+// (map<string, int32> inside Config), including a union as a struct field
+// and a map alongside it in the same struct -- see
+// tests/golden/settings_roundtrip.cc, which proves both arms of the union
+// and the map's contents survive a real Put()/Get() roundtrip over
+// mojo::Receiver/mojo::Remote, the same way registry_roundtrip.cc does for
+// the v2 surface.
+module settings;
+
+union Outcome {
+  int32 code;
+  string message;
+};
+
+struct Config {
+  string name;
+  map<string, int32> counters;
+  Outcome result;
+};
+
+interface Settings {
+  Put(Config config) => (bool ok);
+  Get() => (Config config);
+};

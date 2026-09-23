@@ -1,0 +1,15 @@
+// The "old, but forward-compatible" server schema in an interface
+// extensibility proof -- see greeter_v1_closed.voodoom (same interface,
+// minus `[Extensible]`) and greeter_v2.voodoom (the "new" schema a client
+// might be built from). See tests/golden/extensibility_roundtrip.cc,
+// which binds a greeter_v2::Greeter Remote directly to a
+// greeter_v1_extensible::Greeter Receiver (different C++ types, same wire
+// bytes -- exactly like two real binaries built from two revisions of one
+// .voodoom file) and proves the connection survives a call to a method
+// this server doesn't know about.
+module greeter_v1_extensible;
+
+[Extensible]
+interface Greeter {
+  Greet(string name) => (string reply);
+};

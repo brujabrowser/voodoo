@@ -1,0 +1,28 @@
+// Exercises real-mojom-parity phase 4's `handle` type: a generic
+// `handle` (any handle kind, opaque), `handle<message_pipe>`, and
+// `handle<shared_buffer>` -- both nullable and non-nullable forms of
+// each. See tests/golden/handle_types_roundtrip.cc, which proves a real
+// handle actually transits the wire (attached to the message and taken
+// back out on the read side) for every combination, and that an absent
+// nullable handle transits cleanly (no desync of a later param on the
+// same message).
+module handle_types;
+
+// Not referenced by HandleSink itself -- exists purely so the golden test
+// can prove a bare `handle`/`handle<message_pipe>` received by HandleSink
+// really is the exact live message pipe endpoint it was given (not a
+// dup/placeholder) by rewrapping it as a mojo::PendingReceiver<Pingback>
+// and completing a real round trip over it.
+interface Pingback {
+  Ping();
+};
+
+interface HandleSink {
+  SendAny(handle h);
+  SendAnyOptional(handle? h);
+  SendPipe(handle<message_pipe> p);
+  SendPipeOptional(handle<message_pipe>? p);
+  SendBuffer(handle<shared_buffer> b);
+  SendBufferOptional(handle<shared_buffer>? b);
+  SendPlatform(handle<platform> p);
+};

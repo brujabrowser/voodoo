@@ -1,0 +1,17 @@
+// The "new" enum schema -- adds `kBlue` on top of
+// color_v1_closed.voodoom/color_v1_extensible.voodoom's `kRed`/`kGreen`.
+// See tests/golden/enum_versioning_roundtrip.cc, which writes a
+// color_v2::Painter's SetColor(kBlue) (a value neither v1 schema has ever
+// heard of) and reads it back through both.
+module color_v2;
+
+enum Color {
+  kRed,
+  kGreen,
+  kBlue,
+};
+
+interface Painter {
+  SetColor(Color c);
+  Ping() => (bool ok);
+};

@@ -1,0 +1,8 @@
+extension=nkeimhogjdpnpccoofpliimaahmaaome
+hello lastError=none reply={"result":{"ready":true,"host":"offscreen"}}
+dagger lastError=none reply={"result":{"recorded":true,"address":941764473,"logSize":1}}
+voodoo lastError=none reply={"result":{"recorded":true,"address":1481416133,"logSize":2}}
+mojo lastError=none reply={"result":{"recorded":true,"address":2592569,"logSize":3}}
+pending lastError=none reply={"result":{"state":"ResponsePending","address":2592569}}
+missing lastError=none reply={"error":"No handler for 'offscreen:nope'."}
+getLog lastError=none reply={"result":{"entries":[{"method":"ordinal","address":941764473,"state":"recorded"},{"method":"ordinal","address":1481416133,"state":"recorded"},{"method":"ordinal","address":2592569,"state":"recorded"}]}}

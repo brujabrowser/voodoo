@@ -1,0 +1,12 @@
+// The "old" schema in a cross-version compatibility proof -- see
+// widget_v2.voodoom (same struct, one field later) and
+// tests/golden/versioning_roundtrip.cc, which compiles BOTH into the same
+// test binary (different namespaces, so no symbol collision) and proves a
+// widget_v1::Widget and a widget_v2::Widget are wire-compatible with each
+// other in both directions.
+module widget_v1;
+
+struct Widget {
+  string name;
+  int32 weight;
+};

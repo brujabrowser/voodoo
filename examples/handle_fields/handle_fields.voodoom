@@ -1,0 +1,25 @@
+// Exercises real-mojom-parity phase 9 (v23): handle-bearing struct and
+// union fields, array elements, and map values -- the types that used
+// to be method-parameter-only. Chromium method ordinals (`Name@0(...)`)
+// and a `[Default]` on an extensible union are in the same file.
+module handle_fields;
+
+interface Pingback {
+  Ping@0();
+};
+
+struct PipeBundle {
+  pending_remote<Pingback> ping;
+};
+
+[Extensible]
+union Attachment {
+  [Default] int32 none;
+  pending_remote<Pingback> ping;
+};
+
+interface Courier {
+  Deliver@0(PipeBundle bundle) => (bool ok);
+  Attach@1(Attachment a);
+  FanOut@2(array<pending_remote<Pingback>> pings);
+};

@@ -1,0 +1,26 @@
+// Exercises real-mojom-parity phase 5's `array<T, N>` -- a fixed-size
+// array with a compile-time-known element count and no length prefix on
+// the wire, distinct from a plain `array<T>`. Grid.corners_x is a fixed
+// array of scalars, Grid.points is a fixed array of a struct (proving
+// element-type recursion still works), Grid.tags is a nullable fixed
+// array (proving nullability composes the same way it does for a plain
+// array), and SendFixedInts takes one as a bare top-level method
+// parameter. See tests/golden/fixed_array_roundtrip.cc, which proves all
+// of these actually round-trip through real WASMCadidumBindings.
+module fixed_array;
+
+struct Point {
+  int32 x;
+  int32 y;
+};
+
+struct Grid {
+  array<int32, 4> corners_x;
+  array<Point, 3> points;
+  array<string, 2>? tags;
+};
+
+interface GridService {
+  SendGrid(Grid g);
+  SendFixedInts(array<int32, 5> vals) => (int32 sum);
+};

@@ -1,0 +1,15 @@
+// The "old, and NOT forward-compatible" union schema in a union
+// extensibility proof -- see status_v1_extensible.voodoom (same two
+// fields, marked [Extensible]) and status_v2.voodoom (adds a third
+// variant neither v1 schema has). See
+// tests/golden/union_versioning_roundtrip.cc, which writes a
+// status_v2::Status set to that third variant and reads it back through
+// both v1 schemas, proving [Extensible] is what actually makes the
+// difference between a clean read failure and a tolerated "unknown
+// variant" state.
+module status_v1_closed;
+
+union Status {
+  int32 code;
+  string message;
+};

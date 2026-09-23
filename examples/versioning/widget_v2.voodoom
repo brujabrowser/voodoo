@@ -1,0 +1,12 @@
+// The "new" schema in a cross-version compatibility proof -- see
+// widget_v1.voodoom (same struct, minus `color`) and
+// tests/golden/versioning_roundtrip.cc. `color` was added later, hence
+// `[MinVersion=1]`; its default ("unknown") is what an old writer's
+// message leaves it as when a v2 reader decodes it.
+module widget_v2;
+
+struct Widget {
+  string name;
+  int32 weight;
+  [MinVersion=1] string color = "unknown";
+};
