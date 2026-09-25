@@ -1,0 +1,111 @@
+# Runtime and extension surfaces, one command per line.
+# world selects the guest frame. eval/num/run talk to that frame.
+# deputy loads a ChromeErrStates seam. expect/contains check the last result.
+
+world page
+eval typeof chrome.runtime
+expect undefined
+eval chrome.loadTimes()
+expect blink-idl
+eval typeof Mojo
+expect undefined
+
+world isolated
+eval typeof chrome.app
+expect undefined
+eval typeof chrome.loadTimes
+expect function
+
+world extension
+eval chrome.runtime.id
+expect nkeimhogjdpnpccoofpliimaahmaaome
+eval chrome.runtime.sendMessage('ping')
+expect extensions.mojom.LocalFrameHost.OpenChannelToExtension
+eval typeof Mojo
+expect undefined
+
+world mojojs
+run globalThis.pipe = Mojo.createMessagePipe()
+num pipe.result
+expect 0
+run globalThis.bound = Mojo.bindInterface('blink.mojom.BrowserInterfaceBroker', pipe.handle0); bound.then(function(v) { globalThis.boundResult = v; })
+checkpoint
+num boundResult
+expect 0
+run globalThis.msg = pipe.handle1.readMessage()
+eval msg.payload
+expect blink.mojom.BrowserInterfaceBroker
+
+world internals
+num globalThis['access_code_cast.mojom.PageHandler']['AddSink']().ordinal
+expect 2074422509
+eval typeof chrome
+expect undefined
+
+world terraformed
+eval typeof Mojo.bindInterface
+expect function
+eval typeof chrome.runtime.sendMessage
+expect function
+num globalThis['extensions.mojom.MessagePort']['dispatchDisconnect']()
+expect 2592569
+num JavaScriptExecuteRequest('1+1')
+expect 2
+eval JavaScriptExecuteRequestInIsolatedWorld('typeof chrome.app')
+expect undefined
+num JavaScriptMethodExecuteRequest('extensions.mojom.MessagePort', 'dispatchDisconnect')
+expect 2592569
+num MojoVM.count
+expect 9062
+num MojoVM.lookup('extensions.mojom.MessagePort.DispatchDisconnect').mojo
+expect 2592569
+eval MojoVM.call('extensions.mojom.MessagePort.DispatchDisconnect')
+contains 2592569
+
+# DevTools protocol on the guest. No socket.
+eval typeof DevTools.evaluate
+expect function
+eval DevTools.listTargets()
+expect page,isolated,extension,mojojs,internals,terraformed
+eval DevTools.target('extension')
+expect background_page chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/
+eval DevTools.attach('extension')
+expect extension
+eval DevTools.evaluate('chrome.runtime.id')
+expect nkeimhogjdpnpccoofpliimaahmaaome
+eval DevTools.evaluate('debugger')
+expect paused
+eval DevTools.paused()
+expect debuggerStatement
+eval DevTools.resume()
+expect resumed
+eval DevTools.attach('page')
+expect page
+eval DevTools.evaluate('typeof Mojo')
+expect undefined
+eval DevTools.setBreakpointByUrl('chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/background.js', 1)
+expect 1
+
+# AttachDevToolsSession.client_is_trusted. Remote debugging is trusted
+# and may use Database. chrome.debugger is not.
+eval DevTools.trusted()
+expect true
+eval DevTools.dispatch('Database.enable')
+expect ok
+eval DevTools.attachSession('extension', false)
+expect untrusted
+eval DevTools.dispatch('Database.enable')
+expect denied
+eval DevTools.dispatch('Runtime.evaluate')
+expect ok
+num globalThis['blink.mojom.DevToolsAgent']['attachDevToolsSession']()
+expect 959542700
+
+# Internal pages are their own isolates. Neterror still commits chromewebdata.
+deputy chrome://histograms/
+expect ok deputy=chrome-internal access=none webdata=0 committed=chrome://histograms/
+deputy chrome://gpu/
+expect ok deputy=gpu access=none webdata=0 committed=chrome://gpu
+deputy chrome://dino/
+contains webdata=1
+contains committed=chrome-error://chromewebdata/

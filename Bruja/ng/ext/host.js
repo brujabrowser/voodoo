@@ -5,6 +5,7 @@
   if (globalThis.__host && globalThis.__host.opened) return "host-already";
   const SECRPC = 91556947316803;
   const log = [];
+  const device = [];
   const handlers = {};
   function register(name, fn) { handlers[name] = fn; }
 
@@ -23,6 +24,32 @@
   });
   register("pending", function (address) {
     return Promise.resolve({ state: "ResponsePending", address: address });
+  });
+  // Hold the channel, run, then answer. The promise makes the listener
+  // return true (connect). The then body is the run. sendResponse is
+  // the respond.
+  function deviceMark(address, state, executing) {
+    const row = { address: address, state: state, executing: executing };
+    device.push(row);
+    return row;
+  }
+  register("cycle", function (address) {
+    const row = { method: "cycle", address: address, state: "connect" };
+    log.push(row);
+    deviceMark(address, "connect", false);
+    return Promise.resolve().then(function () {
+      deviceMark(address, "run", true);
+      row.state = "respond";
+      deviceMark(address, "respond", false);
+      return { address: address, states: ["connect", "run", "respond"], executing: true };
+    });
+  });
+  register("deviceLog", function () {
+    let executing = 0;
+    for (let i = 0; i < device.length; i++) {
+      if (device[i].executing) executing++;
+    }
+    return { entries: device.length, executing: executing, last: device.length ? device[device.length - 1] : null };
   });
 
   const host = {

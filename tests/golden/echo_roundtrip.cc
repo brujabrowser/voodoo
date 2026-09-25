@@ -10,8 +10,14 @@
 #include "echo_interface_gen.h"
 #include "mojo/public/cpp/bindings/associated_receiver.h"
 #include "mojo/public/cpp/bindings/associated_remote.h"
+#include "mojo/public/cpp/bindings/lib/multiplex_router.h"
+#include "mojo/public/cpp/bindings/lib/wire_primitives.h"
+#include "mojo/public/cpp/bindings/message.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "mojo/public/cpp/bindings/remote.h"
+#include "mojo/public/cpp/system/invitation.h"
+#include "mojo/public/cpp/system/message_pipe.h"
+#include "src/sandbox/external-pointer-table.h"
 #include "whp/base/executor.h"
 
 namespace {
@@ -27,6 +33,7 @@ class EchoImpl : public echo::Echo {
   void EchoString(const std::string& in,
                    base::OnceCallback<void(std::string)> callback) override {
     ++call_count;
+    last_in = in;
     callback(in + in);
     if (listener_.is_bound()) {
       listener_->OnEcho("pushed:" + in);
@@ -41,6 +48,7 @@ class EchoImpl : public echo::Echo {
   void ResetListener() { listener_.reset(); }
 
   int call_count = 0;
+  std::string last_in;
 
  private:
   mojo::AssociatedRemote<echo::EchoListener> listener_;
@@ -92,6 +100,40 @@ TEST(golden_bound_remote_is_named_on_chpt) {
          nullptr);
   EXPECT(mojo::Receiver<echo::Echo>::FromHandle(receiver.chpt_handle()) ==
          &impl);
+}
+
+// The method ordinal is the message name. The proto is EchoString's
+// signature, which is how the stub reads the payload. The object is the
+// impl named on the cpp heap. With no client attached, the router accepts
+// the message and does not call anything.
+TEST(golden_ordinal_runs_the_bound_object) {
+  EchoImpl impl;
+  mojo::ScopedMessagePipeHandle end_a;
+  mojo::ScopedMessagePipeHandle end_b;
+  EXPECT_EQ(mojo::CreateMessagePipe(nullptr, &end_a, &end_b), MOJO_RESULT_OK);
+  auto router = mojo::MultiplexRouter::Create(std::move(end_a), true);
+
+  mojo::Message dropped(echo::Echo::kEchoStringName,
+                        mojo::Message::kFlagExpectsResponse);
+  mojo::internal::WriteString(&dropped, std::string("ab"));
+  dropped.set_request_id(1);
+  EXPECT(router->Accept(&dropped));
+  EXPECT_EQ(impl.call_count, 0);
+
+  echo::Echo::Stub_ stub(&impl, router.get());
+  router->AttachPrimaryClient(&stub);
+  auto heap = echo::Echo::NameOnHeap(&impl);
+  EXPECT(echo::Echo::FromHandle(heap) == &impl);
+
+  mojo::Message call(echo::Echo::kEchoStringName,
+                     mojo::Message::kFlagExpectsResponse);
+  mojo::internal::WriteString(&call, std::string("ab"));
+  call.set_request_id(2);
+  EXPECT(stub.Accept(&call));
+  EXPECT_EQ(impl.call_count, 1);
+  EXPECT_EQ(impl.last_in, "ab");
+  mojo::internal::FreeObject(heap);
+  router->DetachPrimaryClient();
 }
 
 TEST(golden_request_response_roundtrip) {
@@ -189,4 +231,99 @@ TEST(golden_associated_disconnect_handler_fires_across_generated_code) {
   Pump();
 
   EXPECT(client_saw_peer_closed);
+}
+
+// The invitation is the process. Accept hands that process a named pipe.
+// Bind arms the stub. EchoString's ordinal is the message name. The stub
+// reads the payload and calls the object. The object is on CHPT, the
+// callee on EPT, the type record on TPT. The call loads all three.
+TEST(golden_invitation_runs_the_function) {
+  struct Work {
+    std::string in;
+    std::string out;
+  };
+  auto write_reply = [](Work* work) { work->out = work->in + work->in; };
+  using Fn = void (*)(Work*);
+
+  class ProcessEcho : public echo::Echo {
+   public:
+    v8::internal::ExternalPointerTable* ept = nullptr;
+    v8::CppHeapPointerHandle chpt = 0;
+    v8::internal::ExternalPointerHandle eph = 0;
+    int call_count = 0;
+    std::string last_in;
+    std::string last_out;
+
+    void EchoString(const std::string& in,
+                    base::OnceCallback<void(std::string)> callback) override {
+      const void* type_key = echo::Echo::type_key();
+      void* obj = mojo::internal::GetObject(chpt, type_key);
+      void* raw = ept->Get(
+          eph, v8::internal::ExternalPointerTag::kFirstManagedResourceTag);
+      const mojo::internal::InternedTypeRec* rec =
+          mojo::internal::InternedType(type_key);
+      Fn fn = reinterpret_cast<Fn>(raw);
+      if (obj != this || fn == nullptr || rec == nullptr ||
+          rec->type_key != type_key) {
+        callback(std::string());
+        return;
+      }
+      Work work;
+      work.in = in;
+      fn(&work);
+      ++call_count;
+      last_in = work.in;
+      last_out = work.out;
+      callback(work.out);
+    }
+    void SetListener(mojo::PendingAssociatedRemote<echo::EchoListener>) override {}
+  };
+
+  mojo::LoopbackChannel send_channel(0xE010);
+  mojo::OutgoingInvitation outgoing;
+  mojo::ScopedMessagePipeHandle caller_pipe = outgoing.AttachMessagePipe("echo");
+  EXPECT(caller_pipe.is_valid());
+  EXPECT_EQ(mojo::OutgoingInvitation::Send(std::move(outgoing), send_channel),
+            MOJO_RESULT_OK);
+
+  mojo::LoopbackChannel accept_channel(0xE010);
+  mojo::IncomingInvitation incoming =
+      mojo::IncomingInvitation::Accept(accept_channel);
+  EXPECT(incoming.is_valid());
+  mojo::ScopedMessagePipeHandle process_pipe =
+      incoming.ExtractMessagePipe("echo");
+  EXPECT(process_pipe.is_valid());
+
+  ProcessEcho impl;
+  mojo::Receiver<echo::Echo> receiver(&impl);
+  receiver.Bind(mojo::PendingReceiver<echo::Echo>(std::move(process_pipe)));
+  EXPECT(receiver.is_bound());
+
+  v8::internal::ExternalPointerTable ept;
+  impl.ept = &ept;
+  impl.chpt = receiver.chpt_handle();
+  impl.eph = ept.AllocateAndInitializeEntry(
+      reinterpret_cast<void*>(+write_reply),
+      v8::internal::ExternalPointerTag::kFirstManagedResourceTag);
+  EXPECT(echo::Echo::FromHandle(impl.chpt) == &impl);
+  EXPECT(mojo::internal::InternedType(echo::Echo::type_key()) != nullptr);
+
+  mojo::Remote<echo::Echo> remote;
+  remote.Bind(mojo::PendingRemote<echo::Echo>(std::move(caller_pipe), 0));
+  EXPECT(remote.is_bound());
+
+  std::string got;
+  bool responded = false;
+  remote->EchoString("ab", [&](std::string out) {
+    got = std::move(out);
+    responded = true;
+  });
+  Pump();
+
+  EXPECT(responded);
+  EXPECT_EQ(got, "abab");
+  EXPECT_EQ(impl.call_count, 1);
+  EXPECT_EQ(impl.last_in, "ab");
+  EXPECT_EQ(impl.last_out, "abab");
+  ept.FreeEntry(impl.eph);
 }

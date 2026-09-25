@@ -165,6 +165,12 @@ V8_EXPORT void InitializeProcess(PageAllocator* page_allocator = nullptr,
  */
 V8_EXPORT void ShutdownProcess();
 
+// Admitted onto the memory scheduling system's queue before the work runs.
+// kJob is Platform::PostJob. kTask is the foreground task runner.
+enum class MssAdmitKind : int { kJob = 1, kTask = 2 };
+using MssAdmitFn = void (*)(MssAdmitKind kind, int priority);
+V8_EXPORT void SetMssAdmit(MssAdmitFn fn);
+
 namespace internal {
 
 V8_EXPORT void Fatal(const std::string& reason = std::string(),

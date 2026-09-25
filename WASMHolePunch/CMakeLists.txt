@@ -110,15 +110,35 @@ if(NOT TARGET wasmv8_facade)
     "(src/js_bindings/ exposes Whp* to JS through its facade)")
 endif()
 
+# mojovm.Call parses the named .mojom. The portfolio is the 9062-row catalog.
+set(WVC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
+if(NOT TARGET voodoomc_lib)
+  add_library(voodoomc_lib STATIC
+    ${WVC_ROOT}/src/lexer.cc
+    ${WVC_ROOT}/src/parser.cc
+    ${WVC_ROOT}/src/module_loader.cc
+    ${WVC_ROOT}/src/cpp_generator.cc
+    ${WVC_ROOT}/src/type_intern.cc
+    ${WVC_ROOT}/src/mojovm.cc
+  )
+  target_include_directories(voodoomc_lib PUBLIC ${WVC_ROOT}/src)
+endif()
+
 # JS bindings under js_bindings/ (Mojo C++ codec stays in src/bindings/).
 add_library(whp_bindings STATIC
   src/js_bindings/runtime.cc
   src/js_bindings/system_bindings.cc
+  src/js_bindings/chrome_bindings.cc
+  src/js_bindings/mojo_js_bindings.cc
+  src/js_bindings/chrome_devtools_bindings.cc
+  src/js_bindings/mojo_vm_bindings.cc
+  src/js_bindings/chrome_guest.cc
 )
 target_include_directories(whp_bindings PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${WVC_ROOT}/src
 )
-target_link_libraries(whp_bindings PUBLIC whp wasmv8_facade)
+target_link_libraries(whp_bindings PUBLIC whp wasmv8_facade voodoomc_lib)
 if(MSVC)
   target_compile_options(whp_bindings PRIVATE /W4)
 else()
@@ -129,9 +149,33 @@ add_executable(whp_bindings_system_test tests/js_bindings/system_test.cc)
 target_link_libraries(whp_bindings_system_test PRIVATE whp_bindings)
 add_test(NAME whp_bindings_system_test COMMAND whp_bindings_system_test)
 
+add_executable(whp_bindings_chrome_test tests/js_bindings/chrome_test.cc)
+target_link_libraries(whp_bindings_chrome_test PRIVATE whp_bindings)
+add_test(NAME whp_bindings_chrome_test COMMAND whp_bindings_chrome_test)
+
+add_executable(whp_bindings_chrome_guest_test tests/js_bindings/chrome_guest_test.cc)
+target_link_libraries(whp_bindings_chrome_guest_test PRIVATE whp_bindings)
+add_test(NAME whp_bindings_chrome_guest_test COMMAND whp_bindings_chrome_guest_test)
+
+set(CES_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../ChromeErrStates")
+add_executable(whp_chrome_script
+  src/js_bindings/chrome_script.cc
+  ${CES_ROOT}/src/catalog/catalog.cc
+  ${CES_ROOT}/src/loader/loader.cc
+  ${CES_ROOT}/src/deputy/deputy.cc
+  ${CES_ROOT}/src/harness/harness.cc
+)
+target_include_directories(whp_chrome_script PRIVATE "${CES_ROOT}/include")
+target_link_libraries(whp_chrome_script PRIVATE whp_bindings)
+add_test(NAME whp_chrome_script
+  COMMAND whp_chrome_script "${CMAKE_CURRENT_SOURCE_DIR}/tests/js_bindings/guest.script")
+
 add_custom_target(whp_bindings_everything DEPENDS
   whp_bindings
   whp_bindings_system_test
+  whp_bindings_chrome_test
+  whp_bindings_chrome_guest_test
+  whp_chrome_script
 )
 
 # holepunch_wasi_reactor — WASI reactor named whp.wasm

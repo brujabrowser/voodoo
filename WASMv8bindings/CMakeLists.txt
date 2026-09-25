@@ -103,6 +103,8 @@ add_library(wasmv8_facade STATIC
   src/v8/function.cc
   src/v8/script.cc
   src/v8/primitive.cc
+  src/v8/promise.cc
+  src/v8/array-buffer.cc
 )
 target_include_directories(wasmv8_facade PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -155,6 +157,10 @@ add_test(NAME v8_facade_global_test COMMAND v8_facade_global_test)
 add_executable(v8_facade_inherit_test tests/v8_facade_inherit_test.cc)
 target_link_libraries(v8_facade_inherit_test PRIVATE wasmv8_facade)
 add_test(NAME v8_facade_inherit_test COMMAND v8_facade_inherit_test)
+
+add_executable(v8_facade_promise_test tests/v8_facade_promise_test.cc)
+target_link_libraries(v8_facade_promise_test PRIVATE wasmv8_facade)
+add_test(NAME v8_facade_promise_test COMMAND v8_facade_promise_test)
 
 add_executable(cppgc_example examples/cppgc_hello/main.cc)
 target_link_libraries(cppgc_example PRIVATE wasmv8_cppgc)

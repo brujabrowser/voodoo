@@ -3,6 +3,18 @@
 #include <algorithm>
 #include <cstdlib>
 
+#if defined(_WIN32) && !defined(__wasm__)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#elif !defined(__wasm__)
+#include <sys/mman.h>
+#endif
+
 namespace v8 {
 namespace internal {
 
@@ -12,16 +24,55 @@ Sandbox::~Sandbox() {
   if (initialized_) TearDown();
 }
 
+void SandboxBackingDeleter::operator()(uint8_t* p) const {
+  if (p == nullptr) return;
+#if defined(_WIN32) && !defined(__wasm__)
+  VirtualFree(p, 0, MEM_RELEASE);
+#elif !defined(__wasm__)
+  munmap(p, size);
+#else
+  delete[] p;
+#endif
+}
+
 void Sandbox::Initialize(size_t size) {
   CHECK(!initialized_);
   CHECK_GT(size, 0u);
-  backing_ = std::make_unique<uint8_t[]>(size);
+#if defined(_WIN32) && !defined(__wasm__)
+  auto* mem = static_cast<uint8_t*>(VirtualAlloc(nullptr, size, MEM_RESERVE, PAGE_NOACCESS));
+#elif !defined(__wasm__)
+  void* mapped = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  auto* mem = mapped == MAP_FAILED ? nullptr : static_cast<uint8_t*>(mapped);
+#else
+  auto* mem = new uint8_t[size]();
+#endif
+  CHECK(mem != nullptr);
+  backing_ = std::unique_ptr<uint8_t[], SandboxBackingDeleter>(mem, SandboxBackingDeleter{size});
   base_ = reinterpret_cast<Address>(backing_.get());
   size_ = size;
   end_ = base_ + size_;
   bump_offset_ = 0;
+#if defined(_WIN32) && !defined(__wasm__)
+  committed_ = 0;
+#else
+  committed_ = size;
+#endif
   free_list_.clear();
   initialized_ = true;
+}
+
+bool Sandbox::CommitTo(size_t end) {
+  if (end <= committed_) return true;
+#if defined(_WIN32) && !defined(__wasm__)
+  size_t target = ((end + kCommitStep - 1) / kCommitStep) * kCommitStep;
+  if (target > size_) target = size_;
+  if (VirtualAlloc(backing_.get() + committed_, target - committed_, MEM_COMMIT, PAGE_READWRITE) == nullptr)
+    return false;
+  committed_ = target;
+  return true;
+#else
+  return end <= size_;
+#endif
 }
 
 void Sandbox::TearDown() {
@@ -32,6 +83,7 @@ void Sandbox::TearDown() {
   end_ = kNullAddress;
   size_ = 0;
   bump_offset_ = 0;
+  committed_ = 0;
   free_list_.clear();
   initialized_ = false;
 }
@@ -72,6 +124,12 @@ void* Sandbox::AllocateFromFreeList(size_t size, size_t alignment) {
 }
 
 void* Sandbox::Allocate(size_t size, size_t alignment) {
+  void* result = TryAllocate(size, alignment);
+  CHECK(result != nullptr);
+  return result;
+}
+
+void* Sandbox::TryAllocate(size_t size, size_t alignment) {
   CHECK(initialized_);
   if (void* reused = AllocateFromFreeList(size, alignment)) {
     return reused;
@@ -90,7 +148,8 @@ void* Sandbox::Allocate(size_t size, size_t alignment) {
   uintptr_t unaligned = base_addr + bump_offset_;
   uintptr_t aligned = AlignUp(unaligned, alignment);
   size_t aligned_offset = aligned - base_addr;
-  CHECK_LE(aligned_offset + size, size_);
+  if (aligned_offset > size_ || size > size_ - aligned_offset) return nullptr;
+  if (!CommitTo(aligned_offset + size)) return nullptr;
   void* result = backing_.get() + aligned_offset;
   bump_offset_ = aligned_offset + size;
   return result;

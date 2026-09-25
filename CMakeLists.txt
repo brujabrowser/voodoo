@@ -81,6 +81,9 @@ if(EXISTS "${WVC_WCB_DIR}/CMakeLists.txt" AND NOT TARGET wcb)
 endif()
 
 if(TARGET wcb)
+  add_executable(heap_exec src/heap_exec.cc)
+  target_link_libraries(heap_exec PRIVATE wcb)
+
   # CMAKE_CURRENT_BINARY_DIR (not CMAKE_BINARY_DIR): this golden-test
   # fixture dir is WASMVoodooCompile's own internal scratch space. Using
   # the top-level CMAKE_BINARY_DIR collided with a parent project's own

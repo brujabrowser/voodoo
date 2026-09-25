@@ -52,6 +52,12 @@
 namespace v8 {
 namespace internal {
 
+// Releases a cage's memory the way Sandbox::Initialize obtained it.
+struct SandboxBackingDeleter {
+  size_t size;
+  void operator()(uint8_t* p) const;
+};
+
 class Sandbox final {
  public:
   // Real V8 aims for ~1TB (or a scaled-down size on 32-bit hosts). A
@@ -101,6 +107,10 @@ class Sandbox final {
   // so permanently consuming cage space per allocation and never
   // reclaiming it was a real gap, not an intentional simplification.
   void* Allocate(size_t size, size_t alignment = alignof(std::max_align_t));
+  // Same, but a cage with no room left is nullptr, like a failed malloc,
+  // instead of a CHECK-fail -- for a caller that can refuse the request
+  // (a WASM memory.grow returns -1).
+  void* TryAllocate(size_t size, size_t alignment = alignof(std::max_align_t));
   // Returns [ptr, ptr+size) to the free list, coalescing with any
   // address-adjacent free block. `ptr` must be a value this Allocate()
   // returned (with the same `size`) and not already freed -- same
@@ -129,8 +139,22 @@ class Sandbox final {
   Address base_ = kNullAddress;
   Address end_ = kNullAddress;
   size_t size_ = 0;
-  std::unique_ptr<uint8_t[]> backing_;
+  // The cage's memory. Zeroed, as it always was, but on a native host the
+  // zeros are the OS's demand-zero pages (VirtualAlloc / mmap) rather
+  // than written up front, so a large cage costs only what is touched --
+  // and on Windows, commit charge only for what was handed out
+  // (committed_).
+  std::unique_ptr<uint8_t[], SandboxBackingDeleter> backing_;
   size_t bump_offset_ = 0;
+  // Windows: the cage is reserved address space, and [0, committed_) of it
+  // is committed. The bump path commits in kCommitStep units as it grows,
+  // so commit charge follows what was ever handed out, not the cage size.
+  // Everywhere else the whole cage is usable from Initialize and this is
+  // the size.
+  size_t committed_ = 0;
+  static constexpr size_t kCommitStep = 64 * 1024;
+  // Makes [0, end) usable. False when the OS refuses the commit.
+  bool CommitTo(size_t end);
   bool initialized_ = false;
   // Address-sorted, coalesced. A vector + linear scan is the right amount
   // of "real" here: this cage tops out at kDefaultSize-scale (tens of MB)

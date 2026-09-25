@@ -1,0 +1,98 @@
+url	access	role	name	nodes
+chrome://apps	ok	RootWebArea	Apps	11
+chrome://app-service-internals	ok	RootWebArea	App Service Internals	7
+chrome://autofill-ml-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://batch-upload	ok	RootWebArea		75
+chrome://bluetooth-internals	ok	RootWebArea	Bluetooth Internals	20
+chrome://browser-actuator-internals	landed chrome-error://chromewebdata/	RootWebArea	chrome://browser-actuator-internals/	5
+chrome://cloud-upload	landed chrome-error://chromewebdata/	RootWebArea	chrome://cloud-upload/	5
+chrome://contextual-cueing-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://discards	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://discards/graph	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://dlp-internals	landed chrome-error://chromewebdata/	RootWebArea	chrome://dlp-internals/	5
+chrome://downloads	ok	RootWebArea	Download history	46
+chrome://drive-picker-host	landed chrome-error://chromewebdata/	RootWebArea	chrome://drive-picker-host/	5
+chrome://enterprise-reporting	landed chrome-error://chromewebdata/	RootWebArea	chrome://enterprise-reporting/	5
+chrome://extensions	ok	RootWebArea	Extensions	65
+chrome://favicon2	ok	RootWebArea	favicon2 (16×16)	5
+chrome://flag	landed chrome-error://chromewebdata/	RootWebArea	chrome://flag/	5
+chrome://flags#arc-extend-input-anr-timeout	ok	RootWebArea	Experiments	65
+chrome://flags#arc-extend-intent-anr-timeout	ok	RootWebArea	Experiments	65
+chrome://flags#arc-extend-service-anr-timeout	ok	RootWebArea	Experiments	65
+chrome://flags#arc-friendlier-error-dialog	ok	RootWebArea	Experiments	65
+chrome://flags#arc-ignore-hover-event-anr	ok	RootWebArea	Experiments	65
+chrome://flags#arc-resize-compat	ok	RootWebArea	Experiments	65
+chrome://flags#arc-rounded-window-compat	ok	RootWebArea	Experiments	65
+chrome://flags#arc-touchscreen-emulation	ok	RootWebArea	Experiments	65
+chrome://flags#arc-trackpad-scroll-touchscreen-emulation	ok	RootWebArea	Experiments	65
+chrome://flags#arc-xdg-mode	ok	RootWebArea	Experiments	65
+chrome://flags#enable-pip-double-tap-to-resize	ok	RootWebArea	Experiments	65
+chrome://flags#jelly-colors	ok	RootWebArea	Experiments	65
+chrome://flags#qs-revamp	ok	RootWebArea	Experiments	65
+chrome://flags#render-arc-notifications-by-chrome	ok	RootWebArea	Experiments	65
+chrome://flags#rounded-windows	ok	RootWebArea	Experiments	65
+chrome://glic	ok	RootWebArea	Gemini in Chrome	4
+chrome://glic/internals	ok	RootWebArea	Glic - Internals	204
+chrome://gpu	ok	RootWebArea	GPU Internals	261
+chrome://growth-internals/	landed chrome-error://chromewebdata/	RootWebArea	chrome://growth-internals/	5
+chrome://help-app	landed chrome-error://chromewebdata/	RootWebArea	chrome://help-app/	5
+chrome://help-app/help/sub/3399763/id/1282338#install-user	landed chrome-error://chromewebdata/	RootWebArea	chrome://help-app/help/sub/3399763/id/1282338#install-user	5
+chrome://histograms	ok	RootWebArea	Histograms	13640
+chrome://history	ok	RootWebArea	History	9
+chrome://history/journeys	ok	RootWebArea	History	9
+chrome://history-sync-optin	ax-failed			0
+chrome://indexeddb-internals	crashed			0
+chrome://indigo-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://launcher-internals	landed chrome-error://chromewebdata/	RootWebArea	chrome://launcher-internals/	5
+chrome://location-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://mall	landed chrome-error://chromewebdata/	RootWebArea	chrome://mall/	5
+chrome://management	ok	RootWebArea	Settings - Management	13
+chrome://manage-mirrorsync	landed chrome-error://chromewebdata/	RootWebArea	chrome://manage-mirrorsync/	5
+chrome://media-app	landed chrome-error://chromewebdata/	RootWebArea	chrome://media-app/	5
+chrome://media-router-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://multidevice-setup	landed chrome-error://chromewebdata/	RootWebArea	chrome://multidevice-setup/	5
+chrome://nearby	landed chrome-error://chromewebdata/	RootWebArea	chrome://nearby/	5
+chrome://net-internals	ok	RootWebArea		5
+chrome://network	landed chrome-error://chromewebdata/	RootWebArea	chrome://network/	5
+chrome://newtab	ok	RootWebArea	New Tab	5
+chrome://new-tab-page	ok	RootWebArea	New Tab	5
+chrome://omnibox	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://omnibox/ml	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://on-device-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://oobe	landed chrome-error://chromewebdata/	RootWebArea	chrome://oobe/	5
+chrome://os-feedback	landed chrome-error://chromewebdata/	RootWebArea	chrome://os-feedback/	5
+chrome://os-settings	landed chrome-error://chromewebdata/	RootWebArea	chrome://os-settings/	5
+chrome://os-settings/networks?type=WiFi	landed chrome-error://chromewebdata/	RootWebArea	chrome://os-settings/networks?type=WiFi	5
+chrome://page-action-internals	landed chrome-error://chromewebdata/	RootWebArea	chrome://page-action-internals/	5
+chrome://password-manager	ok	RootWebArea	Google Password Manager	193
+chrome://personalization	landed chrome-error://chromewebdata/	RootWebArea	chrome://personalization/	5
+chrome://policy	ok	RootWebArea	Policies	37
+chrome://policy/logs	ok	RootWebArea	Policy Logs	89
+chrome://print	ok	RootWebArea		352
+chrome://print-management	landed chrome-error://chromewebdata/	RootWebArea	chrome://print-management/	5
+chrome://process-internals	ok	RootWebArea	Process Model Internals	6
+chrome://proximity-auth	landed chrome-error://chromewebdata/	RootWebArea	chrome://proximity-auth/	5
+chrome://quota-internals	ok	RootWebArea	Quota Internals	47
+chrome://recorder-app	landed chrome-error://chromewebdata/	RootWebArea	chrome://recorder-app/	5
+chrome://sandbox	ok	RootWebArea	Sandbox Status	16
+chrome://scanning	landed chrome-error://chromewebdata/	RootWebArea	chrome://scanning/	5
+chrome://sensor-info	landed chrome-error://chromewebdata/	RootWebArea	chrome://sensor-info/	5
+chrome://settings	ok	RootWebArea	Settings	54
+chrome://settings/clearBrowsingData	ok	RootWebArea	Settings	54
+chrome://settings/security	ok	RootWebArea	Settings - Security	54
+chrome://signout-confirmation	ax-failed			0
+chrome://skills	crashed			0
+chrome://skills/browse	ok	RootWebArea	Skills	37
+chrome://skills/browse-skills	ok	RootWebArea	Skills	37
+chrome://skills/dialog	ok	RootWebArea	Skills	9
+chrome://subresource-filter-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://test-removable-storage-writer	landed chrome-error://chromewebdata/	RootWebArea	chrome://test-removable-storage-writer/	5
+chrome://theme/IDR_LOGIN_DEFAULT_X	landed chrome-error://chromewebdata/	RootWebArea	chrome://theme/IDR_LOGIN_DEFAULT_X	5
+chrome://tracing	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://unexportable-keys-internals	landed chrome-error://chromewebdata/	RootWebArea	chrome://unexportable-keys-internals/	5
+chrome://updater	ok	RootWebArea	Updater	36
+chrome://user-education-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://web-app-internals	ok	RootWebArea	Web App Internals	29
+chrome://webxr-internals	ok	RootWebArea	Internal debugging pages are currently disabled.	9
+chrome://kill	skipped			0
+chrome://gpucrash	skipped			0

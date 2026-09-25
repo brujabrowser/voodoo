@@ -28,6 +28,9 @@ class Isolate {
 
   static Isolate* GetCurrent();
 
+  // Runs quickjs pending jobs (promise reactions).
+  void PerformMicrotaskCheckpoint();
+
   class Scope {
    public:
     explicit Scope(Isolate* isolate);

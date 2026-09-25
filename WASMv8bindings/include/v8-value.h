@@ -23,6 +23,8 @@ class Value {
   bool IsNumber() const { return JS_IsNumber(val_); }
   bool IsBoolean() const { return JS_IsBool(val_); }
   bool IsFunction() const { return ctx_ && JS_IsFunction(ctx_, val_); }
+  bool IsPromise() const { return JS_IsPromise(val_); }
+  bool IsArrayBuffer() const { return JS_IsArrayBuffer(val_); }
 
   JSContext* context_for_wasmv8_internal() const { return ctx_; }
   JSValue value_for_wasmv8_internal() const { return val_; }

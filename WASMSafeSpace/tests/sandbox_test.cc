@@ -6,6 +6,9 @@
 // adjacent free blocks rather than fragmenting), and TearDown() actually
 // invalidates containment (nothing "left over" is still considered inside
 // afterwards).
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -110,6 +113,46 @@ int main() {
 
   sandbox.TearDown();
   assert(!sandbox.is_initialized());
+
+  // A fresh cage reads as zero. TryAllocate refuses what no longer fits
+  // instead of aborting, and a freed block makes room again.
+  {
+    Sandbox small;
+    small.Initialize(64 * 1024);
+    auto* first = static_cast<unsigned char*>(small.TryAllocate(40 * 1024, 16));
+    assert(first != nullptr);
+    for (size_t i = 0; i < 40 * 1024; ++i) assert(first[i] == 0);
+    assert(small.TryAllocate(40 * 1024, 16) == nullptr);
+    assert(small.TryAllocate(size_t{1} << 40, 16) == nullptr);
+    small.Free(first, 40 * 1024);
+    assert(small.TryAllocate(40 * 1024, 16) != nullptr);
+    small.TearDown();
+  }
+
+#if defined(_WIN32)
+  // Commit on use: a large cage is reserved address space; what the bump
+  // path hands out is committed, zeroed, and writable end to end, and the
+  // rest stays reserved.
+  {
+    Sandbox big;
+    big.Initialize(size_t{256} << 20);
+    auto* first = static_cast<unsigned char*>(big.TryAllocate(size_t{1} << 20, 16));
+    assert(first != nullptr && first[0] == 0 && first[(size_t{1} << 20) - 1] == 0);
+    first[(size_t{1} << 20) - 1] = 1;
+    MEMORY_BASIC_INFORMATION info{};
+    VirtualQuery(reinterpret_cast<void*>(big.base() + (size_t{64} << 20)), &info, sizeof(info));
+    assert(info.State == MEM_RESERVE);
+    const size_t n = size_t{200} << 20;
+    auto* second = static_cast<unsigned char*>(big.TryAllocate(n, 16));
+    assert(second != nullptr && second[n - 1] == 0);
+    second[0] = 2;
+    second[n - 1] = 3;
+    VirtualQuery(second + n - 1, &info, sizeof(info));
+    assert(info.State == MEM_COMMIT);
+    assert(big.TryAllocate(size_t{100} << 20, 16) == nullptr);
+    big.TearDown();
+  }
+#endif
 
   std::printf("sandbox_test: OK\n");
   return 0;

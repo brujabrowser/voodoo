@@ -7,6 +7,7 @@
 #ifndef WASMV8_INCLUDE_V8_H_
 #define WASMV8_INCLUDE_V8_H_
 
+#include "v8-array-buffer.h"
 #include "v8-context.h"
 #include "v8-exception.h"
 #include "v8-function-callback.h"
@@ -17,6 +18,7 @@
 #include "v8-maybe.h"
 #include "v8-object.h"
 #include "v8-primitive.h"
+#include "v8-promise.h"
 #include "v8-property-callback.h"
 #include "v8-sandbox.h"
 #include "v8-script.h"

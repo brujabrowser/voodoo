@@ -11,6 +11,11 @@
 #include "src/heap/internal/gc-info-table.h"
 
 namespace cppgc {
+
+MssAdmitFn g_mss_admit = nullptr;
+
+void SetMssAdmit(MssAdmitFn fn) { g_mss_admit = fn; }
+
 namespace {
 
 bool g_process_initialized = false;
@@ -21,6 +26,7 @@ class ImmediateTaskRunner final : public TaskRunner {
 
   void PostTask(std::unique_ptr<Task> task) override {
     if (!task) return;
+    if (g_mss_admit) g_mss_admit(MssAdmitKind::kTask, static_cast<int>(priority_));
     task->Run();
   }
 
@@ -172,6 +178,7 @@ std::shared_ptr<TaskRunner> Platform::GetForegroundTaskRunner(
 std::unique_ptr<JobHandle> Platform::PostJob(
     TaskPriority priority, std::unique_ptr<JobTask> job_task) {
   if (!job_task) return nullptr;
+  if (g_mss_admit) g_mss_admit(MssAdmitKind::kJob, static_cast<int>(priority));
   auto handle =
       std::make_unique<DefaultJobHandle>(std::move(job_task), priority);
   // Use priority: blocking/visible jobs run on post; best-effort waits
