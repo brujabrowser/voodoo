@@ -1,0 +1,15 @@
+// The v3 (mixed-type methods) example, the way navigator.bruja proved v2's
+// attributes: methods taking/returning non-string types (long, boolean),
+// not just DOMString -- ast.h's TypeKind already has kLong/kUnsignedLong/
+// kBoolean marshaling code (cpp_generator.cc), but no example/golden test
+// had exercised it against a real quickjs-ng context until this one (see
+// tests/golden/processes_roundtrip.cc).
+//
+// Modeled on chrome.processes's synchronous request/response half.
+// Real chrome.processes also has onUpdated/onCreated/onUnresponsive/
+// onExited events. This file covers the methods.
+interface Processes {
+  long getProcessIdForTab(long tabId);
+  boolean terminate(long processId);
+  DOMString getProcessInfo(DOMString processIdsJson, boolean includeMemory);
+};

@@ -1,0 +1,62 @@
+// Caldron -- greenfield Web IDL. Lime hosts the kettle; it routes by domain:
+//   bruja:// GML (about, sandbox) → translateHTML only on a WASMTTY channel
+//   http(s) intent GML → translateGML (GML2RML) then RmlUi
+//   leftover Html domain → cascade (WASMBlinker) then translateHTML → RML
+//
+//   translateGML
+//     GUIKit GML → well-formed RML. This is the intent-recompile path:
+//     html2gml decompiles MHTML to WASMBlinker-layout GML; Caldron JITs RML.
+//   cascade(html, vw, vh)  [Html domain only — not the default web path]
+//     blink::InlineComputedCss then HTML5 → well-formed RML.
+//   translateHTML / translateXHTML
+//     HTML5.x / XHTML → well-formed RML (quote attrs, close voids).
+//   translateCSS / translateXCSS
+//     Web CSS → RCSS RmlUi will parse. vw/vh stay native. grid → flex.
+//
+// Grammar: WASMBruja's .bruja. Namespace `cauldron_generated`.
+// JS global: caldron (and cauldron, same kettle).
+
+dictionary PropertySpec {
+  DOMString name;
+  DOMString defaultValue = "";
+  boolean inherited = false;
+  boolean forcesLayout = false;
+  DOMString parser = "string";
+};
+
+interface RmlStyleSheet {
+  boolean registerProperty(PropertySpec spec);
+  boolean hasProperty(DOMString name);
+};
+
+interface RmlElement {
+  readonly attribute DOMString tagName;
+  attribute DOMString id;
+  attribute DOMString className;
+  readonly attribute RmlElement? parentElement;
+  readonly attribute unsigned long childCount;
+
+  boolean setProperty(DOMString name, DOMString value);
+  DOMString getProperty(DOMString name);
+  void removeProperty(DOMString name);
+
+  boolean hasAttribute(DOMString name);
+  DOMString getAttribute(DOMString name);
+  void setAttribute(DOMString name, DOMString value);
+
+  RmlElement? getChild(unsigned long index);
+  RmlElement? getElementById(DOMString id);
+};
+
+interface Cauldron {
+  readonly attribute RmlStyleSheet styleSheet;
+
+  void registerWebProperties();
+  DOMString cascade(DOMString html, float viewportWidth, float viewportHeight);
+  DOMString translateHTML(DOMString html);
+  DOMString translateXHTML(DOMString xml);
+  DOMString translateGML(DOMString gml);
+  DOMString translateCSS(DOMString css);
+  DOMString translateXCSS(DOMString xcss);
+  void applyPage(RmlElement root);
+};

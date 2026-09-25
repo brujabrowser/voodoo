@@ -1,0 +1,28 @@
+# Copyright (C) 2010-2024 Apple Inc. All rights reserved.
+#
+# Slice of WebKit2 messages.in covering receiver attributes, per-message
+# [EnabledBy=...], trailing IPC flags, and std::expected template commas.
+
+[
+ ExceptionForDispatchedFrom,
+ DispatchedTo=WebContent
+]
+messages -> WebPage WantsAsyncDispatchMessage {
+ SetInitialFocus(bool forward, bool isKeyboardEventValid, RefPtr event) -> ()
+ [DeferSendingIfSuspended] SetShouldSuppressHDR(bool shouldSuppressHDR)
+ TestProcessIncomingSyncMessagesWhenWaitingForSyncReply() -> (bool handled) Synchronous AllowedWhenWaitingForSyncReplyDuringUnboundedIPC
+ KeepBlobURLAliveForNewWindowNavigation(URL blobURL, std::optional topOrigin) AllowedWhenWaitingForSyncReply
+ RunJavaScriptInFrameInScriptWorld(struct WebKit::RunJavaScriptParameters parameters, std::optional frameID) -> (std::expected<WebKit::JavaScriptEvaluationResult, std::optional > result)
+ [DeferSendingIfSuspendedWithCoalescingKeys=(contextId)] SetShouldPlayToPlaybackTarget(WebCore::PlaybackTargetClientContextIdentifier contextId, bool shouldPlay)
+}
+
+[
+ ExceptionForEnabledBy,
+ DispatchedFrom=WebContent,
+ DispatchedTo=UI
+]
+messages -> WebPageProxy {
+ [EnabledBy=WebShareEnabled] ShowShareSheet(struct WebCore::ShareDataWithParsedURL shareData) -> (bool granted)
+ [EnabledBy=InputTypeDateEnabled || InputTypeDateTimeLocalEnabled || InputTypeMonthEnabled] ShowDateTimePicker(struct WebCore::DateTimeChooserParameters params);
+ LoadURL(URL url)
+}

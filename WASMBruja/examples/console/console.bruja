@@ -1,0 +1,9 @@
+// The canonical first example, the way echo.voodoom is voodoomc's: small,
+// real, and enough to exercise the whole pipeline (an interface with more
+// than one method, string params, void returns). See
+// tests/golden/console_roundtrip.cc for the proof this actually works
+// against a real quickjs-ng context, not just a hand-inspected header.
+interface Console {
+  void log(DOMString message);
+  void warn(DOMString message);
+};

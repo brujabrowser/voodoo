@@ -1,0 +1,50 @@
+// RmlUi JIT -- live document/element surface for after-Lime.
+//
+// Cauldron (cauldron.bruja) is the translate kettle: HTML/CSS → RML/RCSS,
+// ApplyPage on an abstract tree. This module binds the *real* RmlUi tree
+// after LoadDocumentFromMemory:
+//   registerHtmlElements → Factory::RegisterElementInstancer (HTML5 tags)
+//   registerDomain       → rml::Domain (Gml/Html/Svg/Rml) paint routing
+//   pinPageRoot          → lifted http(s) pages inside chrome #viewport
+//   document.show/update → ElementDocument lifecycle
+//
+// GML/shell pages keep using dashboard pins (#dash/#shell). pinPageRoot
+// only runs when #page-root has no dashboard shell inside it.
+//
+// Grammar: WASMBruja .bruja. Namespace `rml_generated`.
+// Proved by tests/golden/rml_roundtrip.cc.
+// Impl: WASMUniLoader/cpp/display/rml.cc.
+
+interface RmlElement {
+  readonly attribute DOMString tagName;
+  attribute DOMString id;
+  attribute DOMString className;
+  readonly attribute RmlElement? parentElement;
+  readonly attribute unsigned long childCount;
+
+  boolean setProperty(DOMString name, DOMString value);
+  DOMString getProperty(DOMString name);
+  void removeProperty(DOMString name);
+
+  boolean hasAttribute(DOMString name);
+  DOMString getAttribute(DOMString name);
+  void setAttribute(DOMString name, DOMString value);
+
+  RmlElement? getChild(unsigned long index);
+  RmlElement? getElementById(DOMString id);
+};
+
+interface RmlDocument : RmlElement {
+  void show();
+  void update();
+};
+
+interface RmlUi {
+  void registerElement(DOMString tagName);
+  void registerHtmlElements();
+  // "html" | "svg" | "gml" | "rml" -- selects which paint domain the next
+  // document enters. Cauldron routes by domain; this is the same switch
+  // reachable from Bruja instead of only from C++.
+  void registerDomain(DOMString domain);
+  void pinPageRoot(RmlElement viewport);
+};

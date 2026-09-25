@@ -1,0 +1,10 @@
+// Document -- Bruja Browser's first real DOM-surface binding (see
+// WASMBruja/README.md's "will eventually let WASMv16 expose a real DOM
+// surface" goal). Mirrors navigator.bruja's v2 (attribute) shape so
+// `document.title`/`document.url` read like the real DOM instead of
+// methods -- backed by the active tab's real Navigate() response, not a
+// stub.
+interface Document {
+  readonly attribute DOMString title;
+  readonly attribute DOMString url;
+};

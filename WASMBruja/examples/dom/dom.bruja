@@ -1,0 +1,439 @@
+// The HTML5-parity DOM tree -- a representative, real subset of the DOM
+// (EventTarget/Event/CustomEvent/Node/Element/CharacterData/Text/Comment/
+// DocumentFragment/DocumentType/Document/Window/HTMLElement plus 17
+// concrete HTMLXxxElement leaves, a genuinely-filled-out Window --
+// storage/navigator/console/animation-frame scheduling/mutation
+// observation -- plus URL/URLSearchParams), authored to exercise the
+// whole of brujac's Web IDL grammar: interface inheritance (up to 5
+// levels deep: EventTarget -> Node -> Element -> HTMLElement ->
+// HTMLDivElement etc.), nullable and interface-typed values, sequence<T>,
+// enum, dictionary (including dictionary inheritance: CustomEventInit :
+// EventInit), callback, optional/variadic parameters, interface mixins +
+// `includes`, `constructor(...)`, `Promise<T>`, and union types
+// (`(Node or DOMString)`, including combined with variadic). See
+// WASMBruja/README.md and this repo's src/ast.h for what's deliberately
+// still out of scope (extended attributes, `static` members,
+// `iterable<T>`, multi-file imports, and union types as a *return* type
+// -- see cpp_generator.h).
+//
+// "Modeled on, not a literal port" of the real DOM (same spirit as
+// WASMBlinker's LocalFrame):
+//  - childNodes/getAttributeNames/children/getElementsByTagName etc. are
+//    plain sequences rather than live NodeList/HTMLCollection objects.
+//  - CharacterData is simplified to `data`/`length` (no appendData/
+//    deleteData/substringData); ChildNode's `before`/`after`/`replaceWith`
+//    accept but don't materialize their `DOMString` union alternative
+//    into a real Text node (would need a `Document` reference these impls
+//    don't carry -- see tests/golden/dom_roundtrip.cc's ChildNodeBefore/
+//    After/ReplaceWith); `after` simplifies exact-position semantics to a
+//    plain append (no "next sibling" primitive to insert before, same
+//    class of limitation as the existing `previousElementSibling` stub);
+//    Slottable and the rest of Shadow DOM are skipped entirely;
+//    Element.attributes (NamedNodeMap/Attr) isn't modeled --
+//    getAttribute/setAttribute/hasAttribute/getAttributeNames already
+//    cover the common surface.
+//  - setTimeout's trailing arguments are stringified rather than `any...`
+//    (keeps the generated callback machinery free of JSValue-ownership
+//    questions); CustomElementRegistry.define skips the constructor-
+//    function-reference parameter real `define()` takes (function values
+//    aren't a modeled type here) -- it just registers the name.
+//  - An interface-typed getter/return always yields a JS wrapper shaped
+//    like its *declared* IDL type, not the value's real most-derived type
+//    (see src/cpp_generator.h) -- e.g. `Node.parentNode` gives back a
+//    plain Node-shaped object even when the real node is an Element.
+//  - `constructor(...)`-declared interfaces (Text/Comment/DocumentFragment/
+//    Event/CustomEvent/MutationObserver) are instantiable from JS via
+//    `new`, but -- like every other impl pointer in this generator -- the
+//    resulting object is non-owning; the embedder-supplied factory
+//    callback (see InstallXConstructor in the generated header) is
+//    responsible for the object's actual lifetime.
+//  - MutationObserver doesn't actually observe anything (no real mutation-
+//    tracking engine here); `Navigator`/`Console` below are small, locally
+//    (re)declared interfaces -- brujac still has no multi-file imports,
+//    so they're intentionally-duplicated, minimal versions of
+//    examples/navigator/navigator.bruja and examples/console/console.bruja
+//    (different generated namespace, so no actual collision).
+//  - CustomEventInit's `detail` field is `any` with an explicit `= null`
+//    default (not left to a bare aggregate default): see cpp_generator.h
+//    for why an `any`-typed dictionary field needs one.
+//  - `URL` stores its components independently rather than deriving them
+//    from a real parse of `href` (no real URL parser here);
+//    `URLSearchParams`'s constructor does simple `k=v&k2=v2` splitting
+//    with no percent-decoding.
+
+callback EventListener = void (Event event);
+callback TimerCallback = void ();
+callback FrameRequestCallback = void (double time);
+callback MutationCallback = void (sequence<MutationRecord> mutations, MutationObserver observer);
+
+enum DocumentReadyState { "loading", "interactive", "complete" };
+
+dictionary ElementCreationOptions {
+  DOMString is = "";
+};
+
+dictionary EventInit {
+  boolean bubbles = false;
+  boolean cancelable = false;
+  boolean composed = false;
+};
+
+// The dictionary-inheritance showcase: `new CustomEvent(type, {bubbles:
+// true, detail: 42})` reads bubbles (inherited from EventInit) and detail
+// (own) off one flat JS object -- see resolver.cc's CollectEffectiveFields.
+dictionary CustomEventInit : EventInit {
+  any detail = null;
+};
+
+dictionary MutationObserverInit {
+  boolean childList = false;
+  boolean attributes = false;
+  boolean subtree = false;
+};
+
+// Shared across Document/DocumentFragment/Element (real spec pattern --
+// see the `includes` statements at the end of this file).
+interface mixin ParentNode {
+  readonly attribute sequence<Element> children;
+  readonly attribute Element? firstElementChild;
+  readonly attribute Element? lastElementChild;
+  readonly attribute unsigned long childElementCount;
+
+  Element? querySelector(DOMString selectors);
+  sequence<Element> querySelectorAll(DOMString selectors);
+};
+
+// Shared across Element/CharacterData/DocumentType. before/after/
+// replaceWith's `(Node or DOMString)... nodes` is this file's union-type
+// showcase (see the header comment on the DOMString alternative's
+// simplification).
+interface mixin ChildNode {
+  void remove();
+  void before((Node or DOMString)... nodes);
+  void after((Node or DOMString)... nodes);
+  void replaceWith((Node or DOMString)... nodes);
+};
+
+// Shared across Element/CharacterData.
+interface mixin NonDocumentTypeChildNode {
+  readonly attribute Element? previousElementSibling;
+  readonly attribute Element? nextElementSibling;
+};
+
+interface EventTarget {
+  void addEventListener(DOMString type, EventListener listener);
+  void removeEventListener(DOMString type, EventListener listener);
+  boolean dispatchEvent(Event event);
+};
+
+interface Event {
+  constructor(DOMString type, optional EventInit eventInitDict);
+
+  readonly attribute DOMString type;
+  readonly attribute EventTarget? target;
+  readonly attribute boolean bubbles;
+  readonly attribute boolean cancelable;
+  readonly attribute boolean defaultPrevented;
+
+  void preventDefault();
+  void stopPropagation();
+};
+
+interface CustomEvent : Event {
+  constructor(DOMString type, optional CustomEventInit eventInitDict);
+
+  readonly attribute any detail;
+};
+
+interface Node : EventTarget {
+  const unsigned short ELEMENT_NODE = 1;
+  const unsigned short TEXT_NODE = 3;
+  const unsigned short COMMENT_NODE = 8;
+  const unsigned short DOCUMENT_NODE = 9;
+  const unsigned short DOCUMENT_FRAGMENT_NODE = 11;
+  const unsigned short DOCUMENT_TYPE_NODE = 10;
+
+  readonly attribute unsigned short nodeType;
+  readonly attribute DOMString nodeName;
+  readonly attribute Node? parentNode;
+  readonly attribute Node? firstChild;
+  readonly attribute Node? lastChild;
+  readonly attribute sequence<Node> childNodes;
+  attribute DOMString? textContent;
+
+  Node appendChild(Node child);
+  Node removeChild(Node child);
+  Node insertBefore(Node newNode, Node? referenceNode);
+  boolean hasChildNodes();
+  Node cloneNode(optional boolean deep = false);
+  boolean contains(Node? other);
+};
+
+interface Element : Node {
+  readonly attribute DOMString tagName;
+  attribute DOMString id;
+  attribute DOMString className;
+  readonly attribute DOMTokenList classList;
+
+  DOMString? getAttribute(DOMString name);
+  void setAttribute(DOMString name, DOMString value);
+  void removeAttribute(DOMString name);
+  boolean hasAttribute(DOMString name);
+  sequence<DOMString> getAttributeNames();
+  boolean matches(DOMString selectors);
+  Element? closest(DOMString selectors);
+};
+
+interface HTMLElement : Element {
+  attribute DOMString title;
+  attribute boolean hidden;
+  attribute long tabIndex;
+
+  void click();
+};
+
+interface CharacterData : Node {
+  attribute DOMString data;
+  readonly attribute unsigned long length;
+};
+
+interface Text : CharacterData {
+  constructor(optional DOMString data = "");
+};
+
+interface Comment : CharacterData {
+  constructor(optional DOMString data = "");
+};
+
+interface DocumentFragment : Node {
+  constructor();
+};
+
+interface DocumentType : Node {
+  readonly attribute DOMString name;
+  readonly attribute DOMString publicId;
+  readonly attribute DOMString systemId;
+};
+
+interface DOMTokenList {
+  readonly attribute unsigned long length;
+  attribute DOMString value;
+
+  DOMString? item(unsigned long index);
+  boolean contains(DOMString token);
+  void add(DOMString... tokens);
+  void remove(DOMString... tokens);
+  boolean toggle(DOMString token, optional boolean force = false);
+};
+
+interface Location {
+  attribute DOMString href;
+
+  void reload();
+};
+
+interface URLSearchParams {
+  constructor(optional USVString init = "");
+
+  DOMString? get(DOMString name);
+  void set(DOMString name, DOMString value);
+  void append(DOMString name, DOMString value);
+  void delete(DOMString name);
+  boolean has(DOMString name);
+  DOMString toString();
+};
+
+interface URL {
+  constructor(USVString url, optional USVString base = "");
+
+  attribute USVString href;
+  attribute USVString protocol;
+  attribute USVString host;
+  attribute USVString pathname;
+  attribute USVString search;
+  attribute USVString hash;
+  readonly attribute URLSearchParams searchParams;
+
+  DOMString toString();
+};
+
+interface CustomElementRegistry {
+  void define(DOMString name);
+  Promise<void> whenDefined(DOMString name);
+};
+
+interface Storage {
+  readonly attribute unsigned long length;
+
+  DOMString? key(unsigned long index);
+  DOMString? getItem(DOMString key);
+  void setItem(DOMString key, DOMString value);
+  void removeItem(DOMString key);
+  void clear();
+};
+
+interface MutationRecord {
+  readonly attribute DOMString type;
+  readonly attribute Node target;
+};
+
+interface MutationObserver {
+  constructor(MutationCallback callback);
+
+  void observe(Node target, optional MutationObserverInit options);
+  void disconnect();
+  sequence<MutationRecord> takeRecords();
+};
+
+interface Navigator {
+  readonly attribute DOMString userAgent;
+  readonly attribute boolean onLine;
+};
+
+interface Console {
+  void log(DOMString message);
+  void warn(DOMString message);
+  void error(DOMString message);
+};
+
+interface Document : Node {
+  readonly attribute DocumentReadyState readyState;
+  readonly attribute Element? documentElement;
+  attribute HTMLElement? body;
+  readonly attribute HTMLElement? head;
+  attribute DOMString title;
+
+  Element createElement(DOMString tagName, optional ElementCreationOptions options);
+  Text createTextNode(DOMString data);
+  Comment createComment(DOMString data);
+  DocumentFragment createDocumentFragment();
+  Element? getElementById(DOMString id);
+  sequence<Element> getElementsByTagName(DOMString qualifiedName);
+  sequence<Element> getElementsByClassName(DOMString classNames);
+};
+
+interface Window : EventTarget {
+  readonly attribute Document document;
+  readonly attribute Location location;
+  readonly attribute CustomElementRegistry customElements;
+  readonly attribute Storage localStorage;
+  readonly attribute Storage sessionStorage;
+  readonly attribute Navigator navigator;
+  readonly attribute Console console;
+  attribute long innerWidth;
+  attribute long innerHeight;
+
+  void alert(DOMString message);
+  long setTimeout(TimerCallback handler, optional long timeout = 0, DOMString... arguments);
+  void clearTimeout(long id);
+  long requestAnimationFrame(FrameRequestCallback callback);
+  void cancelAnimationFrame(long handle);
+};
+
+interface HTMLDivElement : HTMLElement {
+};
+
+interface HTMLAnchorElement : HTMLElement {
+  attribute DOMString href;
+  attribute DOMString target;
+};
+
+interface HTMLImageElement : HTMLElement {
+  attribute DOMString src;
+  attribute DOMString alt;
+  attribute unsigned long width;
+  attribute unsigned long height;
+  readonly attribute unsigned long naturalWidth;
+  readonly attribute unsigned long naturalHeight;
+  readonly attribute boolean complete;
+};
+
+interface HTMLInputElement : HTMLElement {
+  attribute DOMString value;
+  attribute DOMString type;
+  attribute boolean checked;
+  attribute boolean disabled;
+};
+
+interface HTMLButtonElement : HTMLElement {
+  attribute boolean disabled;
+  attribute DOMString type;
+};
+
+interface HTMLFormElement : HTMLElement {
+  attribute DOMString action;
+  attribute DOMString method;
+
+  void submit();
+};
+
+interface HTMLScriptElement : HTMLElement {
+  attribute DOMString src;
+  attribute boolean async;
+  attribute boolean defer;
+};
+
+interface HTMLSelectElement : HTMLElement {
+  attribute DOMString value;
+  readonly attribute long length;
+};
+
+interface HTMLTextAreaElement : HTMLElement {
+  attribute DOMString value;
+  attribute long rows;
+  attribute long cols;
+};
+
+interface HTMLCanvasElement : HTMLElement {
+  attribute unsigned long width;
+  attribute unsigned long height;
+};
+
+interface HTMLLabelElement : HTMLElement {
+  attribute DOMString htmlFor;
+};
+
+interface HTMLOptionElement : HTMLElement {
+  attribute DOMString value;
+  attribute DOMString text;
+  attribute boolean selected;
+  attribute boolean disabled;
+};
+
+interface HTMLMediaElement : HTMLElement {
+  attribute DOMString src;
+  attribute boolean autoplay;
+  attribute boolean loop;
+  attribute boolean muted;
+  attribute boolean controls;
+  readonly attribute boolean paused;
+
+  void play();
+  void pause();
+};
+
+interface HTMLAudioElement : HTMLMediaElement {
+};
+
+interface HTMLVideoElement : HTMLMediaElement {
+  attribute unsigned long width;
+  attribute unsigned long height;
+};
+
+interface HTMLIFrameElement : HTMLElement {
+  attribute DOMString src;
+  readonly attribute Window? contentWindow;
+};
+
+interface HTMLTemplateElement : HTMLElement {
+  readonly attribute DocumentFragment content;
+};
+
+Document includes ParentNode;
+DocumentFragment includes ParentNode;
+Element includes ParentNode;
+Element includes ChildNode;
+Element includes NonDocumentTypeChildNode;
+CharacterData includes ChildNode;
+CharacterData includes NonDocumentTypeChildNode;
+DocumentType includes ChildNode;

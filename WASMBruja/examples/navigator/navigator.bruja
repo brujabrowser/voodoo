@@ -1,0 +1,10 @@
+// The v2 (attribute) example, the way console.bruja proved v1's methods.
+// `onLine` is genuinely read-only on the real Web platform; it's made
+// writable here purely to exercise the setter codegen path (see
+// tests/golden/navigator_roundtrip.cc) -- not a claim about spec accuracy,
+// same spirit as WASMBlinker's LocalFrame being "modeled on" rather than a
+// literal port of blink.mojom.
+interface Navigator {
+  readonly attribute DOMString userAgent;
+  attribute boolean onLine;
+};

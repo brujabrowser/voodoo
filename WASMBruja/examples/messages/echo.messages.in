@@ -1,0 +1,10 @@
+[
+    DispatchedFrom=WebContent,
+    DispatchedTo=UI,
+    ExceptionForEnabledBy
+]
+messages -> WebKit::Echo {
+    SetMode(enum:uint8_t EchoMode mode)
+    Send(String text) -> (String echoedText)
+    Ping() -> (bool alive) Synchronous
+}
